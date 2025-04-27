@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -19,6 +20,10 @@ const Navbar = () => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  
+  const toggleMenu = () => {
+    setIsOpen(!isOpen);
+  };
   
   const handleLogout = async () => {
     try {
