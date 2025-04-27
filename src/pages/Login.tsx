@@ -1,34 +1,74 @@
 
-import AuthForm from "@/components/auth/AuthForm";
-import { Link } from "react-router-dom";
-import { BookOpen } from "lucide-react";
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useToast } from '@/components/ui/use-toast';
 
-const Login = () => {
-  const handleLogin = (data: any) => {
-    // Handle login logic here - in a real app, this would make an API call
-    console.log("Login attempt with:", data);
+export default function Login() {
+  const navigate = useNavigate();
+  const { signIn } = useAuth();
+  const { toast } = useToast();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    
+    try {
+      await signIn(email, password);
+      toast({
+        title: 'Success',
+        description: 'Logged in successfully',
+      });
+      navigate('/');
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Invalid credentials',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-edu-light">
-      <div className="container mx-auto py-8 px-6 flex-1 flex flex-col">
-        <div className="mb-8 text-center">
-          <Link to="/" className="inline-flex items-center gap-2 text-2xl font-bold text-edu-primary">
-            <BookOpen size={32} />
-            <span>Student Aid Central</span>
-          </Link>
-        </div>
-        
-        <div className="flex-1 flex items-center justify-center">
-          <AuthForm type="login" onSubmit={handleLogin} />
-        </div>
-        
-        <div className="mt-8 text-center text-sm text-gray-500">
-          <p>By logging in, you agree to our <Link to="/terms" className="text-edu-primary hover:underline">Terms of Service</Link> and <Link to="/privacy" className="text-edu-primary hover:underline">Privacy Policy</Link>.</p>
-        </div>
-      </div>
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <Card className="w-full max-w-md">
+        <CardHeader>
+          <CardTitle className="text-center text-2xl font-bold">Login</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div>
+              <Input
+                type="text"
+                placeholder="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
+            <div>
+              <Input
+                type="password"
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </div>
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading ? 'Signing in...' : 'Sign in'}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   );
-};
-
-export default Login;
+}
