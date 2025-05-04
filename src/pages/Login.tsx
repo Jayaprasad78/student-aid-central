@@ -1,11 +1,11 @@
 
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -19,6 +19,19 @@ export default function Login() {
     e.preventDefault();
     setLoading(true);
     
+    // For testing purposes - hardcoded admin login
+    if (email === 'admin@gmail.com' && password === 'admin@123') {
+      toast({
+        title: 'Success',
+        description: 'Logged in as admin successfully',
+      });
+      // Set logged in state in localStorage for demo purposes
+      localStorage.setItem('user', JSON.stringify({ email, role: 'admin' }));
+      navigate('/');
+      setLoading(false);
+      return;
+    }
+    
     try {
       await signIn(email, password);
       toast({
@@ -27,6 +40,7 @@ export default function Login() {
       });
       navigate('/');
     } catch (error) {
+      console.error('Login error:', error);
       toast({
         title: 'Error',
         description: 'Invalid credentials',
@@ -66,6 +80,14 @@ export default function Login() {
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? 'Signing in...' : 'Sign in'}
             </Button>
+            <div className="text-center mt-4 text-sm">
+              <p>
+                Don't have an account?{' '}
+                <Link to="/register" className="text-edu-primary hover:underline">
+                  Register
+                </Link>
+              </p>
+            </div>
           </form>
         </CardContent>
       </Card>
