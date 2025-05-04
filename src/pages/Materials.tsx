@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,9 +6,24 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FileText, Search, Calendar, Download, Upload } from "lucide-react";
+import { FileText, Search, Calendar, Download, Upload, Loader } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
+import { useRequireAuth } from "@/hooks/use-require-auth";
+import { supabase } from "@/integrations/supabase/client";
+
+interface Material {
+  id: number;
+  title: string;
+  description: string;
+  type: string;
+  category: string;
+  date: string;
+  size: string;
+  downloads: number;
+  user_id: string;
+}
 
 // Mock data for materials
 const mockMaterials = [
@@ -20,7 +35,8 @@ const mockMaterials = [
     category: "Computer Science",
     date: "Apr 20, 2025",
     size: "2.4 MB",
-    downloads: 128
+    downloads: 128,
+    user_id: "user1"
   },
   {
     id: 2,
@@ -118,12 +134,55 @@ const fileTypes = [
 ];
 
 const Materials = () => {
+  const { user } = useRequireAuth();
+  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All Categories");
   const [selectedType, setSelectedType] = useState("All Types");
+  const [materials, setMaterials] = useState<Material[]>([]);
+  const [loading, setLoading] = useState(true);
+  
+  useEffect(() => {
+    if (user) {
+      fetchMaterials();
+    }
+  }, [user]);
+  
+  const fetchMaterials = async () => {
+    try {
+      // In a real application, this would fetch materials from Supabase
+      // For demo purposes, we'll use mock data
+      
+      const mockMaterials = [
+        {
+          id: 1,
+          title: "Introduction to Computer Science",
+          description: "Foundational concepts in computing and programming",
+          type: "PDF",
+          category: "Computer Science",
+          date: "Apr 20, 2025",
+          size: "2.4 MB",
+          downloads: 128,
+          user_id: "user1"
+        },
+        // ... keep existing mockMaterials data
+      ];
+      
+      setMaterials(mockMaterials);
+    } catch (error) {
+      console.error("Error fetching materials:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load materials",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
   
   // Filter materials based on search, category, and type
-  const filteredMaterials = mockMaterials.filter((material) => {
+  const filteredMaterials = materials.filter((material) => {
     const matchesSearch = 
       material.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
       material.description.toLowerCase().includes(searchTerm.toLowerCase());
@@ -199,7 +258,7 @@ const Materials = () => {
             <Tabs defaultValue="grid" className="w-full">
               <div className="flex justify-between items-center mb-4">
                 <div className="text-sm text-gray-500">
-                  {filteredMaterials.length} materials found
+                  {loading ? "Loading materials..." : `${filteredMaterials.length} materials found`}
                 </div>
                 <TabsList>
                   <TabsTrigger value="grid">Grid View</TabsTrigger>
@@ -207,83 +266,100 @@ const Materials = () => {
                 </TabsList>
               </div>
               
-              <TabsContent value="grid" className="mt-0">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                  {filteredMaterials.map((material) => (
-                    <Card key={material.id} className="hover:shadow-lg transition-shadow">
-                      <CardHeader className="pb-2">
-                        <div className="flex justify-between items-start">
-                          <Badge 
-                            className={`mb-2 ${
-                              material.type === "PDF" ? "bg-edu-primary" : 
-                              material.type === "Document" ? "bg-edu-secondary" : 
-                              "bg-edu-accent"
-                            } text-white`}
-                          >
-                            {material.type}
-                          </Badge>
-                          <Badge variant="outline" className="text-xs">{material.category}</Badge>
-                        </div>
-                        <CardTitle className="text-lg">{material.title}</CardTitle>
-                        <CardDescription className="line-clamp-2">{material.description}</CardDescription>
-                      </CardHeader>
-                      <CardContent className="pt-0">
-                        <div className="flex items-center justify-between text-sm text-gray-500 mt-2">
-                          <div className="flex items-center">
-                            <Calendar size={14} className="mr-1" />
-                            <span>{material.date}</span>
-                          </div>
-                          <div>{material.size}</div>
-                        </div>
-                      </CardContent>
-                      <CardFooter className="pt-0">
-                        <Button variant="ghost" className="w-full text-edu-primary hover:bg-edu-primary/10 flex items-center justify-center gap-2">
-                          <Download size={16} />
-                          <span>Download</span>
-                        </Button>
-                      </CardFooter>
-                    </Card>
-                  ))}
+              {loading ? (
+                <div className="text-center py-12">
+                  <Loader size={48} className="mx-auto text-gray-300 mb-4 animate-spin" />
+                  <h3 className="text-lg font-medium">Loading materials...</h3>
                 </div>
-              </TabsContent>
-              
-              <TabsContent value="list" className="mt-0">
-                <div className="space-y-4">
-                  {filteredMaterials.map((material) => (
-                    <div key={material.id} className="bg-white border rounded-lg p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:shadow-md transition-shadow">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <Badge 
-                            className={`${
-                              material.type === "PDF" ? "bg-edu-primary" : 
-                              material.type === "Document" ? "bg-edu-secondary" : 
-                              "bg-edu-accent"
-                            } text-white`}
-                          >
-                            {material.type}
-                          </Badge>
-                          <Badge variant="outline">{material.category}</Badge>
-                        </div>
-                        <h3 className="font-medium">{material.title}</h3>
-                        <p className="text-sm text-gray-500">{material.description}</p>
+              ) : (
+                <>
+                  <TabsContent value="grid" className="mt-0">
+                    {filteredMaterials.length > 0 ? (
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                        {filteredMaterials.map((material) => (
+                          <Card key={material.id} className="hover:shadow-lg transition-shadow">
+                            <CardHeader className="pb-2">
+                              <div className="flex justify-between items-start">
+                                <Badge 
+                                  className={`mb-2 ${
+                                    material.type === "PDF" ? "bg-edu-primary" : 
+                                    material.type === "Document" ? "bg-edu-secondary" : 
+                                    "bg-edu-accent"
+                                  } text-white`}
+                                >
+                                  {material.type}
+                                </Badge>
+                                <Badge variant="outline" className="text-xs">{material.category}</Badge>
+                              </div>
+                              <CardTitle className="text-lg">{material.title}</CardTitle>
+                              <CardDescription className="line-clamp-2">{material.description}</CardDescription>
+                            </CardHeader>
+                            <CardContent className="pt-0">
+                              <div className="flex items-center justify-between text-sm text-gray-500 mt-2">
+                                <div className="flex items-center">
+                                  <Calendar size={14} className="mr-1" />
+                                  <span>{material.date}</span>
+                                </div>
+                                <div>{material.size}</div>
+                              </div>
+                            </CardContent>
+                            <CardFooter className="pt-0">
+                              <Button variant="ghost" className="w-full text-edu-primary hover:bg-edu-primary/10 flex items-center justify-center gap-2">
+                                <Download size={16} />
+                                <span>Download</span>
+                              </Button>
+                            </CardFooter>
+                          </Card>
+                        ))}
                       </div>
-                      <div className="flex flex-col md:flex-row items-start md:items-center gap-4 w-full md:w-auto">
-                        <div className="flex flex-col md:items-end text-sm text-gray-500 w-full md:w-auto">
-                          <div className="flex items-center gap-1">
-                            <Calendar size={14} />
-                            <span>{material.date}</span>
+                    ) : (
+                      <EmptyState />
+                    )}
+                  </TabsContent>
+                  
+                  <TabsContent value="list" className="mt-0">
+                    {filteredMaterials.length > 0 ? (
+                      <div className="space-y-4">
+                        {filteredMaterials.map((material) => (
+                          <div key={material.id} className="bg-white border rounded-lg p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:shadow-md transition-shadow">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                <Badge 
+                                  className={`${
+                                    material.type === "PDF" ? "bg-edu-primary" : 
+                                    material.type === "Document" ? "bg-edu-secondary" : 
+                                    "bg-edu-accent"
+                                  } text-white`}
+                                >
+                                  {material.type}
+                                </Badge>
+                                <Badge variant="outline">{material.category}</Badge>
+                              </div>
+                              <h3 className="font-medium">{material.title}</h3>
+                              <p className="text-sm text-gray-500">{material.description}</p>
+                            </div>
+                            <div className="flex flex-col md:flex-row items-start md:items-center gap-4 w-full md:w-auto">
+                              <div className="flex flex-col md:items-end text-sm text-gray-500 w-full md:w-auto">
+                                <div className="flex items-center gap-1">
+                                  <Calendar size={14} />
+                                  <span>{material.date}</span>
+                                </div>
+                                <div>{material.size} • {material.downloads} downloads</div>
+                              </div>
+                              <Button variant="outline" className="flex items-center gap-2 w-full md:w-auto">
+                                <Download size={16} />
+                                <span>Download</span>
+                              </Button>
+                            </div>
                           </div>
-                          <div>{material.size} • {material.downloads} downloads</div>
-                        </div>
-                        <Button variant="outline" className="flex items-center gap-2 w-full md:w-auto">
-                          <Download size={16} />
-                          <span>Download</span>
-                        </Button>
+                        ))}
                       </div>
-                    </div>
-                  ))}
-                </div>
-              </TabsContent>
+                    ) : (
+                      <EmptyState />
+                    )}
+                  </TabsContent>
+                </>
+              )}
             </Tabs>
           </div>
         </div>
@@ -293,5 +369,15 @@ const Materials = () => {
     </div>
   );
 };
+
+const EmptyState = () => (
+  <div className="text-center py-12">
+    <FileText size={48} className="mx-auto text-gray-300 mb-4" />
+    <h3 className="text-xl font-medium mb-2">No materials found</h3>
+    <p className="text-gray-500">
+      Try adjusting your filters or search term to find what you're looking for.
+    </p>
+  </div>
+);
 
 export default Materials;

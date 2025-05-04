@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
+import { LogIn, AlertCircle } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -14,27 +16,12 @@ export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    
-    // For testing purposes - hardcoded admin login
-    if (email === 'admin@gmail.com' && password === 'admin@123') {
-      toast({
-        title: 'Success',
-        description: 'Logged in as admin successfully',
-      });
-      // Set logged in state in localStorage for demo purposes
-      localStorage.setItem('user', JSON.stringify({ 
-        email, 
-        role: 'admin',
-        id: 'admin-user-id' // Add an ID so that auth checks pass
-      }));
-      navigate('/');
-      setLoading(false);
-      return;
-    }
+    setError(null);
     
     try {
       await signIn(email, password);
@@ -43,11 +30,12 @@ export default function Login() {
         description: 'Logged in successfully',
       });
       navigate('/');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Login error:', error);
+      setError(error.message || 'Invalid credentials');
       toast({
         title: 'Error',
-        description: 'Invalid credentials',
+        description: error.message || 'Invalid credentials',
         variant: 'destructive',
       });
     } finally {
@@ -62,6 +50,13 @@ export default function Login() {
           <CardTitle className="text-center text-2xl font-bold">Login</CardTitle>
         </CardHeader>
         <CardContent>
+          {error && (
+            <Alert variant="destructive" className="mb-4">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+          
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <Input

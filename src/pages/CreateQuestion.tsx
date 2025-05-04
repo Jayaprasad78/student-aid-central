@@ -10,8 +10,11 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
+import { useRequireAuth } from "@/hooks/use-require-auth";
+import { supabase } from "@/integrations/supabase/client";
 
 const CreateQuestion = () => {
+  const { user } = useRequireAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -20,9 +23,8 @@ const CreateQuestion = () => {
   const [category, setCategory] = useState("");
   const [attachment, setAttachment] = useState<File | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
     
     // Validation
     if (!title || !content || !category) {
@@ -31,20 +33,43 @@ const CreateQuestion = () => {
         description: "Please fill in all required fields.",
         variant: "destructive",
       });
-      setIsSubmitting(false);
       return;
     }
+
+    setIsSubmitting(true);
     
-    // In a real app, this would make an API call to submit the question
-    setTimeout(() => {
-      console.log("Submitting question:", { title, content, category, attachment });
+    try {
+      // In a real implementation, this would save to Supabase
+      // For now we'll just simulate the API call
+      
+      // Simulate upload delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Log the data that would be sent to Supabase
+      console.log("Question data:", {
+        title,
+        content,
+        category,
+        user_id: user?.id,
+        attachment: attachment ? attachment.name : null
+      });
+      
       toast({
         title: "Question posted successfully",
         description: "Your question has been posted and is now visible to others.",
       });
-      setIsSubmitting(false);
+      
       navigate("/questions");
-    }, 1500);
+    } catch (error) {
+      console.error("Error posting question:", error);
+      toast({
+        title: "Error",
+        description: "Failed to post question. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {

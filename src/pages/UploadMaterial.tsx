@@ -12,8 +12,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Upload, File } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Progress } from "@/components/ui/progress";
+import { useRequireAuth } from "@/hooks/use-require-auth";
+import { supabase } from "@/integrations/supabase/client";
 
 const UploadMaterial = () => {
+  const { user } = useRequireAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isUploading, setIsUploading] = useState(false);
@@ -24,7 +27,7 @@ const UploadMaterial = () => {
   const [fileType, setFileType] = useState("");
   const [file, setFile] = useState<File | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     // Validation
@@ -39,11 +42,29 @@ const UploadMaterial = () => {
     
     // Mock upload progress
     setIsUploading(true);
-    const interval = setInterval(() => {
-      setUploadProgress((prev) => {
-        const newProgress = prev + 10;
-        if (newProgress >= 100) {
+    
+    try {
+      // In a real implementation, this would upload to Supabase Storage
+      // For now we'll simulate progress
+      
+      let progress = 0;
+      const interval = setInterval(() => {
+        progress += 10;
+        setUploadProgress(progress);
+        
+        if (progress >= 100) {
           clearInterval(interval);
+          
+          // Log the data that would be uploaded
+          console.log("Uploading material:", {
+            title,
+            description,
+            category,
+            fileType,
+            fileName: file.name,
+            fileSize: file.size,
+            user_id: user?.id
+          });
           
           // Simulate upload completion
           setTimeout(() => {
@@ -51,15 +72,19 @@ const UploadMaterial = () => {
               title: "Upload successful",
               description: "Your material has been uploaded successfully.",
             });
-            setIsUploading(false);
             navigate("/materials");
           }, 500);
-          
-          return 100;
         }
-        return newProgress;
+      }, 300);
+    } catch (error) {
+      console.error("Upload error:", error);
+      toast({
+        title: "Upload failed",
+        description: "An error occurred while uploading your material.",
+        variant: "destructive"
       });
-    }, 500);
+      setIsUploading(false);
+    }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {

@@ -1,27 +1,54 @@
 
 import { useState } from "react";
 import AuthForm from "@/components/auth/AuthForm";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { BookOpen } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { supabase } from "@/integrations/supabase/client";
 
 const Register = () => {
   const { toast } = useToast();
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
 
-  const handleRegister = (data: any) => {
-    // Handle registration logic here - in a real app, this would make an API call
-    console.log("Registration attempt with:", data);
-    
-    // Show success message
-    toast({
-      title: "Registration submitted",
-      description: "Your registration request has been submitted for admin approval.",
-    });
-    
-    // Set submitted state to show the waiting message
-    setIsSubmitted(true);
+  const handleRegister = async (data: any) => {
+    try {
+      setError(null);
+      
+      // Create a new user in Supabase
+      const { error: signupError } = await supabase.auth.signUp({
+        email: data.email,
+        password: data.password,
+        options: {
+          data: {
+            first_name: data.firstName,
+            last_name: data.lastName,
+            role: 'student' // Default role for new users
+          }
+        }
+      });
+      
+      if (signupError) throw signupError;
+      
+      // Show success message
+      toast({
+        title: "Registration submitted",
+        description: "Your registration request has been submitted for admin approval.",
+      });
+      
+      // Set submitted state to show the waiting message
+      setIsSubmitted(true);
+    } catch (error: any) {
+      console.error("Registration error:", error);
+      setError(error.message || "An error occurred during registration");
+      toast({
+        title: "Registration failed",
+        description: error.message || "An error occurred during registration",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -53,6 +80,12 @@ const Register = () => {
           ) : (
             <>
               <AuthForm type="register" onSubmit={handleRegister} />
+              {error && (
+                <div className="mt-4 text-sm bg-red-50 p-4 rounded-md border border-red-200 max-w-md">
+                  <p className="text-red-800 font-medium mb-1">Registration Error:</p>
+                  <p className="text-red-700">{error}</p>
+                </div>
+              )}
               <div className="mt-4 text-sm bg-blue-50 p-4 rounded-md border border-blue-200 max-w-md">
                 <p className="text-blue-800 font-medium mb-1">Important Note:</p>
                 <p className="text-blue-700">

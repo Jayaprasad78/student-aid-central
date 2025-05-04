@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { 
   BookOpen, 
@@ -12,7 +12,8 @@ import {
   User
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useAuth, useNavigate, useToast } from "@/hooks";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -137,16 +138,29 @@ const Navbar = () => {
             ))}
             <div className="ml-6 flex items-center gap-2">
               {user ? (
-                <Button variant="secondary" size="sm" onClick={handleLogout}>
-                  Logout
-                </Button>
-              ) : (
-                <Link to="/login">
-                  <Button variant="secondary" size="sm" className="bg-white text-edu-primary hover:bg-gray-100">
-                    <LogIn size={16} className="mr-1" />
-                    Login
+                <div className="flex items-center gap-3">
+                  <span className="text-white text-sm">
+                    {user.email}
+                  </span>
+                  <Button variant="secondary" size="sm" onClick={handleLogout}>
+                    Logout
                   </Button>
-                </Link>
+                </div>
+              ) : (
+                <div className="flex gap-2">
+                  <Link to="/login">
+                    <Button variant="secondary" size="sm" className="bg-white text-edu-primary hover:bg-gray-100">
+                      <LogIn size={16} className="mr-1" />
+                      Login
+                    </Button>
+                  </Link>
+                  <Link to="/register">
+                    <Button variant="outline" size="sm" className="bg-transparent text-white border-white hover:bg-white/10">
+                      <User size={16} className="mr-1" />
+                      Register
+                    </Button>
+                  </Link>
+                </div>
               )}
             </div>
           </div>
