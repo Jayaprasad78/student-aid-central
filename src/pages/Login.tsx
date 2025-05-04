@@ -26,7 +26,11 @@ export default function Login() {
         description: 'Logged in as admin successfully',
       });
       // Set logged in state in localStorage for demo purposes
-      localStorage.setItem('user', JSON.stringify({ email, role: 'admin' }));
+      localStorage.setItem('user', JSON.stringify({ 
+        email, 
+        role: 'admin',
+        id: 'admin-user-id' // Add an ID so that auth checks pass
+      }));
       navigate('/');
       setLoading(false);
       return;

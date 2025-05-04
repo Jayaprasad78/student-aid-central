@@ -16,24 +16,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   
-  // Also check localStorage for demo admin user
+  // Get user from localStorage and Supabase
   useEffect(() => {
+    // First check localStorage for admin user (for our demo login)
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
       setUser(JSON.parse(storedUser) as User);
     }
     
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      if (session?.user) {
-        setUser(session?.user ?? null);
+    // Then check Supabase auth
+    const initializeAuth = async () => {
+      const { data } = await supabase.auth.getSession();
+      setSession(data.session);
+      if (data.session?.user) {
+        setUser(data.session.user);
       }
-    });
+    };
+    
+    initializeAuth();
 
+    // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       if (session?.user) {
-        setUser(session?.user ?? null);
+        setUser(session.user);
       }
     });
 
@@ -45,6 +51,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       email,
       password
     });
+    
     if (error) throw error;
   };
 
@@ -52,12 +59,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Clear localStorage admin user
     localStorage.removeItem('user');
     
-    const { error } = await supabase.auth.signOut();
-    if (error) throw error;
-    
-    // Reset user state after sign out
-    setUser(null);
-    setSession(null);
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+    } catch (e) {
+      console.error("Error signing out from Supabase:", e);
+    } finally {
+      // Always reset user state after sign out attempt
+      setUser(null);
+      setSession(null);
+    }
   };
 
   return (
