@@ -47,6 +47,11 @@ const Navbar = () => {
     { name: "Materials", path: "/materials", icon: FileText },
     { name: "Questions", path: "/questions", icon: MessageSquare },
   ];
+  
+  // Add admin link for admin users
+  if (user?.role === "admin") {
+    navLinks.push({ name: "Admin", path: "/admin", icon: User });
+  }
 
   return (
     <nav className="bg-edu-primary py-4 px-6 shadow-md">
@@ -82,22 +87,38 @@ const Navbar = () => {
                     </Link>
                   ))}
                   <hr className="my-2" />
-                  <Link 
-                    to="/login"
-                    className="flex items-center justify-center gap-2 bg-edu-secondary text-white p-2 rounded-md"
-                    onClick={() => setIsOpen(false)}
-                  >
-                    <LogIn size={20} />
-                    <span>Login</span>
-                  </Link>
-                  <Link 
-                    to="/register"
-                    className="flex items-center justify-center gap-2 bg-white border border-edu-secondary text-edu-secondary p-2 rounded-md"
-                    onClick={() => setIsOpen(false)}
-                  >
-                    <User size={20} />
-                    <span>Register</span>
-                  </Link>
+                  {user ? (
+                    <Button 
+                      className="flex items-center justify-center gap-2"
+                      variant="destructive"
+                      onClick={() => {
+                        handleLogout();
+                        setIsOpen(false);
+                      }}
+                    >
+                      <LogIn size={20} />
+                      <span>Logout</span>
+                    </Button>
+                  ) : (
+                    <>
+                      <Link 
+                        to="/login"
+                        className="flex items-center justify-center gap-2 bg-edu-secondary text-white p-2 rounded-md"
+                        onClick={() => setIsOpen(false)}
+                      >
+                        <LogIn size={20} />
+                        <span>Login</span>
+                      </Link>
+                      <Link 
+                        to="/register"
+                        className="flex items-center justify-center gap-2 bg-white border border-edu-secondary text-edu-secondary p-2 rounded-md"
+                        onClick={() => setIsOpen(false)}
+                      >
+                        <User size={20} />
+                        <span>Register</span>
+                      </Link>
+                    </>
+                  )}
                 </div>
               </div>
             )}
