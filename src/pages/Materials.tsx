@@ -1,12 +1,12 @@
-
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FileText, Search, Calendar, Download } from "lucide-react";
+import { FileText, Search, Calendar, Download, Upload } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 
@@ -154,6 +154,15 @@ const Materials = () => {
         </div>
         
         <div className="container mx-auto py-8 px-6">
+          <div className="flex justify-end mb-6">
+            <Link to="/materials/upload">
+              <Button className="bg-edu-primary hover:bg-edu-secondary flex items-center gap-2">
+                <Upload size={16} />
+                <span>Upload Material</span>
+              </Button>
+            </Link>
+          </div>
+          
           <div className="bg-white rounded-lg shadow-md p-6 mb-8">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
               <div className="relative">

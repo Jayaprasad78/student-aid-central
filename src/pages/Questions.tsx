@@ -1,5 +1,6 @@
 
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -139,10 +140,12 @@ const Questions = () => {
         
         <div className="container mx-auto py-8 px-6">
           <div className="flex justify-end mb-6">
-            <Button className="bg-edu-primary hover:bg-edu-secondary">
-              <MessageSquare size={16} className="mr-2" />
-              Ask a Question
-            </Button>
+            <Link to="/questions/create">
+              <Button className="bg-edu-primary hover:bg-edu-secondary">
+                <MessageSquare size={16} className="mr-2" />
+                Ask a Question
+              </Button>
+            </Link>
           </div>
           
           <div className="bg-white rounded-lg shadow-md p-6 mb-8">

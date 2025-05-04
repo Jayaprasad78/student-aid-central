@@ -11,7 +11,9 @@ import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Materials from "./pages/Materials";
+import UploadMaterial from "./pages/UploadMaterial";
 import Questions from "./pages/Questions";
+import CreateQuestion from "./pages/CreateQuestion";
 import AdminDashboard from "./pages/AdminDashboard";
 import NotFound from "./pages/NotFound";
 
@@ -29,7 +31,9 @@ const App = () => (
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/materials" element={<Materials />} />
+            <Route path="/materials/upload" element={<UploadMaterial />} />
             <Route path="/questions" element={<Questions />} />
+            <Route path="/questions/create" element={<CreateQuestion />} />
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
